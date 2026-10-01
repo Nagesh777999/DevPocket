@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevPocket</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='42' fill='%230a1526'/%3E%3Cpath d='M60 130 a28 28 0 0 1 4 -55 a42 42 0 0 1 80 12 a24 24 0 0 1 -4 43 z' fill='%2300c8ff'/%3E%3Ccircle cx='100' cy='102' r='30' fill='%230a1526'/%3E%3Cpath d='M89 92 L79 102 L89 112 M111 92 L121 102 L111 112' fill='none' stroke='%2300c8ff' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0b1220">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f0f; color: #fff; font-family: -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ---------- HOME VIEW ---------- */
+  #homeView { flex: 1; overflow-y: auto; padding: 20px 16px 30px; display: flex; flex-direction: column; }
+  .home-header { text-align: center; padding: 15px 0 25px; }
+  .home-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 14px;
+    display: block;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 170, 255, 0.35), 0 0 60px rgba(0, 240, 208, 0.15);
+  }
+  .home-logo { font-size: 28px; font-weight: 800; letter-spacing: 0.5px; }
+  .home-logo span { color: #0a84ff; }
+  .home-sub { color: #888; font-size: 13px; margin-top: 6px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card {
+    background: #1a1a1a;
+    border: 1px solid #262626;
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 120px;
+  }
+  .card:active { transform: scale(0.97); background: #232323; border-color: #0a84ff; }
+  .card-icon { width: 32px; height: 32px; color: #e0e0e0; display: flex; align-items: center; justify-content: center; }
+  .card-icon svg { width: 26px; height: 26px; }
+  .card-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .card-desc { font-size: 11px; color: #888; line-height: 1.35; }
+  .card.locked { opacity: 0.65; }
+  .card.locked .card-title::after { content: " 🔒"; font-size: 10px; margin-left: 2px; }
+
+  /* ---------- EDITOR VIEW ---------- */
+  #editorWrap { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #editorWrap.show { display: flex; }
+  #homeView.hide { display: none; }
+
+  .header { padding: 10px 12px; background: #1a1a1a; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .back-btn { background: #262626; color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .header-title { font-size: 15px; font-weight: 700; flex: 1; display: flex; align-items: center; gap: 8px; }
+  .header-right { display: flex; gap: 8px; align-items: center; }
+  .tpl-btn { background: #0a84ff; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .save-status { font-size: 10px; color: #4caf50; white-space: nowrap; }
+
+  .main-tabs { display: flex; background: #1a1a1a; border-bottom: 1px solid #262626; }
+  .main-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; color: #aaa; }
+  .main-tab.active { color: #0a84ff; border-bottom: 2px solid #0a84ff; }
+
+  .file-tabs { display: flex; background: #1a1a1a; border-bottom: 1px solid #262626; overflow-x: auto; }
+  .file-tab { padding: 8px 15px; cursor: pointer; font-size: 12px; color: #777; border-right: 1px solid #262626; white-space: nowrap; }
+  .file-tab.active { background: #0f0f0f; color: #fff; border-bottom: 2px solid #0a84ff; }
+
+  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  textarea { flex: 1; width: 100%; background: #0f0f0f; color: #4ec9b0; border: none; padding: 12px; font-family: monospace; font-size: 13px; resize: none; outline: none; line-height: 1.5; }
+  iframe#previewFrame { flex: 1; background: #fff; border: none; width: 100%; }
+  .footer { background: #0a84ff; padding: 6px; text-align: center; font-size: 11px; color: #fff; }
+
+  .toolbar { display: flex; gap: 5px; padding: 6px 8px; background: #1a1a1a; border-bottom: 1px solid #262626; overflow-x: auto; }
+  .toolbar button { background: #262626; color: #fff; border: 1px solid #333; border-radius: 5px; padding: 5px 10px; font-family: monospace; font-size: 13px; cursor: pointer; min-width: 34px; }
+  .toolbar button:active { background: #0a84ff; border-color: #0a84ff; }
+
+  /* ---------- MODAL ---------- */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 20px; overflow-y: auto; }
+  .modal.show { display: block; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 20px; font-weight: bold; }
+  .close-btn { background: #262626; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+  .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tpl-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px 15px; text-align: center; cursor: pointer; }
+  .tpl-card:active { background: #0a84ff; transform: scale(0.97); }
+  .tpl-icon { font-size: 36px; margin-bottom: 10px; }
+  .tpl-name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+  .tpl-desc { font-size: 11px; color: #aaa; }
+
+  .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #0a84ff; color: white; padding: 12px 22px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; z-index: 200; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+  <!-- ==================== HOME VIEW ==================== -->
+  <div id="homeView">
+    <div class="home-header">
+      <svg class="home-icon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00aaff"/>
+            <stop offset="100%" stop-color="#00f0d0"/>
+          </linearGradient>
+        </defs>
+        <rect width="200" height="200" rx="42" fill="#0a1526"/>
+        <path d="M60 130 a28 28 0 0 1 4 -55 a42 42 0 0 1 80 12 a24 24 0 0 1 -4 43 z" fill="url(#logoGrad)"/>
+        <circle cx="100" cy="102" r="30" fill="#0a1526"/>
+        <circle cx="100" cy="102" r="30" fill="none" stroke="url(#logoGrad)" stroke-width="3.5"/>
+        <path d="M89 92 L79 102 L89 112 M111 92 L121 102 L111 112" fill="none" stroke="url(#logoGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="home-logo">Dev<span>Pocket</span></div>
+      <div class="home-sub">Mobile Code Editor</div>
+    </div>
+
+    <div class="grid">
+      <div class="card" onclick="openFeature('home')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Home</div>
+          <div class="card-desc">Recent projects & shortcuts</div>
+        </div>
+      </div>
+
+      <div class="card" onclick="openFeature('editor')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Editor</div>
+          <div class="card-desc">Files & code preview</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('projects')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Projects</div>
+          <div class="card-desc">Local & cloud projects</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('terminal')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="6 10 9 13 6 16"/><line x1="12" y1="16" x2="16" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Terminal</div>
+          <div class="card-desc">Commands & practice</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('git')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Git</div>
+          <div class="card-desc">Repositories & history</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('ai')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><line x1="12" y1="4" x2="12" y2="8"/><circle cx="12" cy="3" r="1"/></svg>
+        </div>
+        <div>
+          <div class="card-title">AI Helper</div>
+          <div class="card-desc">Explain & debug code</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('learn')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Learn</div>
+          <div class="card-desc">Tutorials & templates</div>
+        </div>
+      </div>
+
+      <div class="card locked" onclick="openFeature('profile')">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Profile</div>
+          <div class="card-desc">Settings, sync & plan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EDITOR VIEW ==================== -->
+  <div id="editorWrap">
+    <div class="header">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div class="header-title">
+        <svg viewBox="0 0 200 200" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" rx="42" fill="#0a1526"/>
+          <path d="M60 130 a28 28 0 0 1 4 -55 a42 42 0 0 1 80 12 a24 24 0 0 1 -4 43 z" fill="#00c8ff"/>
+          <circle cx="100" cy="102" r="30" fill="#0a1526"/>
+          <path d="M89 92 L79 102 L89 112 M111 92 L121 102 L111 112" fill="none" stroke="#00c8ff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        DevPocket
+      </div>
+      <div class="header-right">
+        <button class="tpl-btn" onclick="openTemplates()">🎨 Templates</button>
+        <div class="save-status" id="saveStatus">Saved ✓</div>
+      </div>
+    </div>
+
+    <div class="main-tabs">
+      <div class="main-tab active" onclick="showMainTab('editor', event)">Code</div>
+      <div class="main-tab" onclick="showMainTab('preview', event)">Preview</div>
+    </div>
+
+    <div class="content">
+      <div id="editorView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="file-tabs">
+          <div class="file-tab active" onclick="switchFile('html', event)">index.html</div>
+          <div class="file-tab" onclick="switchFile('css', event)">style.css</div>
+          <div class="file-tab" onclick="switchFile('js', event)">script.js</div>
+        </div>
+        <div class="toolbar">
+          <button onclick="insertText('<')">&lt;</button>
+          <button onclick="insertText('>')">&gt;</button>
+          <button onclick="insertText('/')">/</button>
+          <button onclick="insertText('=')">=</button>
+          <button onclick="insertText('\"')">"</button>
+          <button onclick="insertText('{')">{</button>
+          <button onclick="insertText('}')">}</button>
+          <button onclick="insertText('(')">(</button>
+          <button onclick="insertText(')')">)</button>
+          <button onclick="insertText('  ')" style="min-width:40px;">Tab</button>
+          <button onclick="insertText('\n')">↵</button>
+        </div>
+        <textarea id="code" oninput="onCodeChange()" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      </div>
+      <iframe id="previewFrame"></iframe>
+    </div>
+
+    <div class="footer">Lines: <span id="lines">0</span> | Chars: <span id="chars">0</span> | File: <span id="currentFile">index.html</span></div>
+  </div>
+
+  <!-- ==================== TEMPLATES MODAL ==================== -->
+  <div class="modal" id="tplModal">
+    <div class="modal-header">
+      <div class="modal-title">🎨 Templates</div>
+      <button class="close-btn" onclick="closeTemplates()">✕</button>
+    </div>
+    <div class="tpl-grid">
+      <div class="tpl-card" onclick="loadTemplate('portfolio')">
+        <div class="tpl-icon">🎨</div>
+        <div class="tpl-name">Portfolio</div>
+        <div class="tpl-desc">Personal intro page</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('calculator')">
+        <div class="tpl-icon">🧮</div>
+        <div class="tpl-name">Calculator</div>
+        <div class="tpl-desc">Working calculator</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('todo')">
+        <div class="tpl-icon">✅</div>
+        <div class="tpl-name">To-Do App</div>
+        <div class="tpl-desc">Task list</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('landing')">
+        <div class="tpl-icon">🚀</div>
+        <div class="tpl-name">Landing Page</div>
+        <div class="tpl-desc">Modern page</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('blank')" style="grid-column: span 2;">
+        <div class="tpl-icon">📄</div>
+        <div class="tpl-name">Blank Project</div>
+        <div class="tpl-desc">Start from scratch</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const TEMPLATES = {
+    blank: {
+      html: `<h1>Hello DevPocket</h1>\n<p>Start coding!</p>`,
+      css: `body { font-family: sans-serif; padding: 20px; }`,
+      js: `console.log("Ready!");`
+    },
+    portfolio: {
+      html: `<div class="container">\n  <div class="avatar">👤</div>\n  <h1>Rahul Sharma</h1>\n  <p class="role">Web Developer</p>\n  <p class="bio">I build beautiful websites and apps.</p>\n  <div class="skills">\n    <span>HTML</span><span>CSS</span><span>JS</span><span>React</span>\n  </div>\n  <button onclick="contact()">Contact Me</button>\n</div>`,
+      css: `body { font-family: sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }\n.container { background: white; padding: 30px; border-radius: 16px; text-align: center; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }\n.avatar { font-size: 60px; margin-bottom: 10px; }\nh1 { color: #333; margin: 10px 0; }\n.role { color: #667eea; font-weight: bold; margin-bottom: 15px; }\n.bio { color: #666; font-size: 14px; margin-bottom: 20px; }\n.skills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }\n.skills span { background: #f0f0f0; padding: 5px 12px; border-radius: 20px; font-size: 12px; }\nbutton { background: #667eea; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 14px; cursor: pointer; }`,
+      js: `function contact() { alert("Thanks for reaching out!"); }`
+    },
+    calculator: {
+      html: `<div class="calc">\n  <div class="display" id="display">0</div>\n  <div class="keys">\n    <button onclick="clearAll()" class="op">C</button>\n    <button onclick="del()" class="op">⌫</button>\n    <button onclick="append('/')" class="op">÷</button>\n    <button onclick="append('*')" class="op">×</button>\n    <button onclick="append('7')">7</button>\n    <button onclick="append('8')">8</button>\n    <button onclick="append('9')">9</button>\n    <button onclick="append('-')" class="op">−</button>\n    <button onclick="append('4')">4</button>\n    <button onclick="append('5')">5</button>\n    <button onclick="append('6')">6</button>\n    <button onclick="append('+')" class="op">+</button>\n    <button onclick="append('1')">1</button>\n    <button onclick="append('2')">2</button>\n    <button onclick="append('3')">3</button>\n    <button onclick="calc()" class="eq">=</button>\n    <button onclick="append('0')" class="zero">0</button>\n    <button onclick="append('.')">.</button>\n  </div>\n</div>`,
+      css: `body { font-family: sans-serif; background: #1a1a2e; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }\n.calc { background: #16213e; border-radius: 20px; padding: 20px; width: 100%; max-width: 320px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }\n.display { background: #0f3460; color: white; font-size: 36px; padding: 20px; text-align: right; border-radius: 12px; margin-bottom: 15px; overflow: hidden; min-height: 80px; display: flex; align-items: center; justify-content: flex-end; }\n.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }\nbutton { background: #1a1a2e; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }\nbutton:active { background: #0a84ff; }\n.op { background: #e94560; }\n.eq { background: #00b894; grid-row: span 2; }\n.zero { grid-column: span 2; }`,
+      js: `let current = "0";\nfunction update() { document.getElementById("display").innerText = current; }\nfunction append(v) { if (current === "0" && v !== ".") current = v; else current += v; update(); }\nfunction clearAll() { current = "0"; update(); }\nfunction del() { current = current.slice(0, -1) || "0"; update(); }\nfunction calc() { try { current = String(eval(current)); } catch(e) { current = "Error"; } update(); }`
+    },
+    todo: {
+      html: `<div class="app">\n  <h1>✅ To-Do List</h1>\n  <div class="input-row">\n    <input id="taskInput" placeholder="Add a task..." />\n    <button onclick="addTask()">+</button>\n  </div>\n  <ul id="taskList"></ul>\n</div>`,
+      css: `body { font-family: sans-serif; background: #f0f2f5; min-height: 100vh; margin: 0; padding: 20px; }\n.app { max-width: 400px; margin: 0 auto; background: white; padding: 25px; border-radius: 16p
