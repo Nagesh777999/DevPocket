@@ -1,0 +1,18 @@
+{
+  "name": "DevPocket - Mobile Code Editor",
+  "short_name": "DevPocket",
+  "description": "Mobile HTML, CSS, JavaScript editor with live preview",
+  "start_url": "./DevPocket.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0b1220",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%230a1526'/%3E%3Cpath d='M150 330 a70 70 0 0 1 10 -138 a105 105 0 0 1 200 30 a60 60 0 0 1 -10 108 z' fill='%2300c8ff'/%3E%3Ccircle cx='256' cy='260' r='75' fill='%230a1526'/%3E%3Cpath d='M228 230 L200 260 L228 290 M284 230 L312 260 L284 290' fill='none' stroke='%2300c8ff' stroke-width='11' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
