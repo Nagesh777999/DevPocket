@@ -56,8 +56,8 @@
   .header { padding: 10px 12px; background: #1a1a1a; border-bottom: 1px solid #262626; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .back-btn { background: #262626; color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .header-title { font-size: 15px; font-weight: 700; flex: 1; display: flex; align-items: center; gap: 8px; }
-  .header-right { display: flex; gap: 8px; align-items: center; }
-  .tpl-btn { background: #0a84ff; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .header-right { display: flex; gap: 6px; align-items: center; }
+  .tpl-btn { background: #0a84ff; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
   .save-status { font-size: 10px; color: #4caf50; white-space: nowrap; }
 
   .main-tabs { display: flex; background: #1a1a1a; border-bottom: 1px solid #262626; }
@@ -213,7 +213,8 @@
         DevPocket
       </div>
       <div class="header-right">
-        <button class="tpl-btn" onclick="openTemplates()">🎨 Templates</button>
+        <button class="tpl-btn" onclick="exportProject()">📥 Export</button>
+        <button class="tpl-btn" onclick="openTemplates()">🎨</button>
         <div class="save-status" id="saveStatus">Saved ✓</div>
       </div>
     </div>
@@ -286,6 +287,31 @@
     </div>
   </div>
 
+  <!-- ==================== EXPORT MODAL ==================== -->
+  <div class="modal" id="exportModal">
+    <div class="modal-header">
+      <div class="modal-title">📥 Export Project</div>
+      <button class="close-btn" onclick="closeExport()">✕</button>
+    </div>
+    <div class="tpl-grid" style="grid-template-columns:1fr;">
+      <div class="tpl-card" onclick="downloadHTML()">
+        <div class="tpl-icon">📄</div>
+        <div class="tpl-name">Download as HTML</div>
+        <div class="tpl-desc">Single file — kahin bhi open karo</div>
+      </div>
+      <div class="tpl-card" onclick="copyCode()">
+        <div class="tpl-icon">📋</div>
+        <div class="tpl-name">Copy Full Code</div>
+        <div class="tpl-desc">Clipboard mein pura code</div>
+      </div>
+      <div class="tpl-card" onclick="shareCode()">
+        <div class="tpl-icon">📤</div>
+        <div class="tpl-name">Share</div>
+        <div class="tpl-desc">WhatsApp, Gmail, etc.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
 <script>
@@ -302,9 +328,4 @@
     },
     calculator: {
       html: `<div class="calc">\n  <div class="display" id="display">0</div>\n  <div class="keys">\n    <button onclick="clearAll()" class="op">C</button>\n    <button onclick="del()" class="op">⌫</button>\n    <button onclick="append('/')" class="op">÷</button>\n    <button onclick="append('*')" class="op">×</button>\n    <button onclick="append('7')">7</button>\n    <button onclick="append('8')">8</button>\n    <button onclick="append('9')">9</button>\n    <button onclick="append('-')" class="op">−</button>\n    <button onclick="append('4')">4</button>\n    <button onclick="append('5')">5</button>\n    <button onclick="append('6')">6</button>\n    <button onclick="append('+')" class="op">+</button>\n    <button onclick="append('1')">1</button>\n    <button onclick="append('2')">2</button>\n    <button onclick="append('3')">3</button>\n    <button onclick="calc()" class="eq">=</button>\n    <button onclick="append('0')" class="zero">0</button>\n    <button onclick="append('.')">.</button>\n  </div>\n</div>`,
-      css: `body { font-family: sans-serif; background: #1a1a2e; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }\n.calc { background: #16213e; border-radius: 20px; padding: 20px; width: 100%; max-width: 320px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }\n.display { background: #0f3460; color: white; font-size: 36px; padding: 20px; text-align: right; border-radius: 12px; margin-bottom: 15px; overflow: hidden; min-height: 80px; display: flex; align-items: center; justify-content: flex-end; }\n.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }\nbutton { background: #1a1a2e; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }\nbutton:active { background: #0a84ff; }\n.op { background: #e94560; }\n.eq { background: #00b894; grid-row: span 2; }\n.zero { grid-column: span 2; }`,
-      js: `let current = "0";\nfunction update() { document.getElementById("display").innerText = current; }\nfunction append(v) { if (current === "0" && v !== ".") current = v; else current += v; update(); }\nfunction clearAll() { current = "0"; update(); }\nfunction del() { current = current.slice(0, -1) || "0"; update(); }\nfunction calc() { try { current = String(eval(current)); } catch(e) { current = "Error"; } update(); }`
-    },
-    todo: {
-      html: `<div class="app">\n  <h1>✅ To-Do List</h1>\n  <div class="input-row">\n    <input id="taskInput" placeholder="Add a task..." />\n    <button onclick="addTask()">+</button>\n  </div>\n  <ul id="taskList"></ul>\n</div>`,
-      css: `body { font-family: sans-serif; background: #f0f2f5; min-height: 100vh; margin: 0; padding: 20px; }\n.app { max-width: 400px; margin: 0 auto; background: white; padding: 25px; border-radius: 16p
+      css: `body { font-family: sans-serif; background: #1a1a2e; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }\n.calc { background: #16213e; border-radius: 20px; padding: 20px; width: 100%; max-width: 320px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }\n.display { background: #0f3460; color: white; font-size: 36px; padding: 20px; text-align: right; border-radius: 12px; margin-bottom: 15px; overflow: hidden; min-height: 80px; display: flex; align-items: center; justify-content: flex-end; }\n.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }\nbutton { background: #1a1a2e; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: bo
